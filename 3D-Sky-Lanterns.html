@@ -1,176 +1,585 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D 天燈網站</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: Arial, sans-serif; }
-        canvas { display: block; }
-        #inputContainer {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: opacity 0.5s ease;
-        }
-        #textInput {
-            width: 250px;
-            height: 80px;
-            padding: 8px;
-            font-size: 14px;
-            border: 2px solid #ffa500;
-            border-radius: 5px;
-            resize: none;
-            outline: none;
-        }
-        #buttonContainer {
-            margin-top: 8px;
-            display: flex;
-            gap: 8px;
-        }
-        button {
-            padding: 8px 16px;
-            font-size: 14px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        #updateButton {
-            background-color: #ffa500;
-            color: white;
-        }
-        #updateButton:hover {
-            background-color: #ff8c00;
-        }
-        #releaseButton {
-            background-color: #ff4444;
-            color: white;
-        }
-        #releaseButton:hover {
-            background-color: #cc0000;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>天燈 + 多頁卡片(上一頁/下一頁) + 最終頁無下一頁 + 音樂 + 響應式</title>
+  <!-- Three.js & GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <style>
+    /* === 全局樣式：漸層背景 + 彈性字體 === */
+    html, body {
+      margin: 0; 
+      padding: 0; 
+      height: 100%;
+      font-family: "Microsoft JhengHei", sans-serif;
+      font-size: clamp(14px, 2vw, 20px);
+      background: linear-gradient(160deg, #FCE3D4, #FFEFEA);
+      overflow: hidden;
+    }
+
+    /* 3D 場景容器 */
+    #threeContainer {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+    canvas { display: block; width: 100%; height: 100%; }
+
+    /* 天燈輸入區 */
+    #inputContainer {
+      position: absolute;
+      bottom: 2%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.9);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 0.2rem 0.5rem rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      width: clamp(200px, 30vw, 400px);
+    }
+    #textInput {
+      width: 100%;
+      height: clamp(4rem, 12vh, 8rem);
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 2px solid #ffa500;
+      border-radius: 0.3rem;
+      resize: none;
+      outline: none;
+      line-height: 1.5;
+    }
+    #buttonContainer { display: flex; gap: 0.5rem; }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.3rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      white-space: nowrap;
+    }
+    #updateButton {
+      background-color: #ffa500;
+      color: #fff;
+    }
+    #updateButton:hover {
+      background-color: #ff8c00;
+    }
+    #releaseButton {
+      background-color: #ff4444;
+      color: #fff;
+    }
+    #releaseButton:hover {
+      background-color: #cc0000;
+    }
+
+    /* 飄完後顯示的「下一頁」按鈕 */
+    #nextPageButton {
+      position: absolute;
+      bottom: 40%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 1rem 2rem;
+      font-size: clamp(1rem, 2vw, 1.5rem);
+      background: #ffa500;
+      color: #fff;
+      border-radius: 0.5rem;
+      border: none;
+      cursor: pointer;
+      display: none;
+      z-index: 9999;
+      box-shadow: 0 0.2rem 0.5rem rgba(0,0,0,0.2);
+    }
+    #nextPageButton:hover {
+      background-color: #ff8c00;
+    }
+
+    /* 多頁卡片容器 (淺橘背景) */
+    #cardsContainer {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; 
+      height: 100%;
+      display: none; /* 初始隱藏 */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      padding: 1rem;
+      background: linear-gradient(160deg, #FFE7D8, #FFD9BB);
+    }
+    .page {
+      width: clamp(280px, 60vw, 500px);
+      min-height: clamp(300px, 50vh, 600px);
+      border-radius: 1rem;
+      box-shadow: 0 0.2rem 0.5rem rgba(0,0,0,0.2);
+      margin-bottom: 1rem;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: linear-gradient(135deg, #FFE1C4, #FFD3B0);
+    }
+    .pageTitle {
+      font-size: clamp(1rem, 2.5vw, 1.5rem);
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+      margin-bottom: 0.5rem;
+    }
+    .pageContent {
+      font-size: clamp(0.8rem, 2vw, 1.2rem);
+      line-height: 1.6;
+      color: #333;
+      background: rgba(255,255,255,0.6);
+      padding: 0.8rem;
+      border-radius: 0.5rem;
+      box-shadow: inset 0 0.1rem 0.3rem rgba(0,0,0,0.15);
+      white-space: pre-wrap;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 卡片的「上一頁」「下一頁」按鈕 */
+    #cardButtons {
+      display: flex;
+      gap: 1rem;
+    }
+    .cardNavBtn {
+      padding: 0.5rem 1rem;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      background: #ffa500;
+      color: #fff;
+      border: none;
+      border-radius: 0.3rem;
+      cursor: pointer;
+      box-shadow: 0 0.2rem 0.5rem rgba(0,0,0,0.2);
+    }
+    .cardNavBtn:hover {
+      background-color: #ff8c00;
+    }
+    .cardNavBtn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* 音樂不顯示 */
+    #bgm { display: none; }
+  </style>
 </head>
+
 <body>
-    <div id="inputContainer">
-        <textarea id="textInput" placeholder="輸入你的願望 (每行一個)..."></textarea>
-        <div id="buttonContainer">
-            <button id="updateButton" onclick="updateText()">更新文字</button>
-            <button id="releaseButton" onclick="releaseLantern()" disabled>釋放</button>
-        </div>
+  <!-- 3D 天燈容器 -->
+  <div id="threeContainer"></div>
+
+  <!-- 輸入UI -->
+  <div id="inputContainer">
+    <textarea id="textInput" placeholder="輸入你的願望 (每行一個)..."></textarea>
+    <div id="buttonContainer">
+      <button id="updateButton">更新文字</button>
+      <button id="releaseButton" disabled>釋放</button>
     </div>
-    <script>
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.shadowMap.enabled = true;
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+  </div>
 
-        const light = new THREE.PointLight(0xffffff, 2, 100);
-        light.position.set(0, 10, 5);
-        light.castShadow = true;
-        scene.add(light);
+  <!-- 飄到中途 -> 顯示 "下一頁" -->
+  <button id="nextPageButton">下一頁</button>
 
-        const ambientLight = new THREE.AmbientLight(0x808080);
-        scene.add(ambientLight);
+  <!-- 多頁卡片 -->
+    <div id="cardsContainer">
+      <div class="page" id="page0">
+        <div class="pageContent">
+          不知不覺我們攜手走過一個月，<br>
+          生命中最幸福的時光，<br>
+          都是跟寶寶在一起的點點滴滴。
+        </div>
+      </div>
+    
+      <div class="page" id="page1">
+        <div class="pageContent">
+          我很常看著我們出去玩的照片<br>
+          那些畫面就像糖果一樣，<br>
+          讓我的心裡甜甜的。
+        </div>
+      </div>
+    
+      <div class="page" id="page2">
+        <div class="pageContent">
+          手牽著手奔跑在沙灘上，<br>
+          妳的笑容比陽光還要耀眼
+        </div>
+      </div>
+    
+      <div class="page" id="page3">
+        <div class="pageContent">
+          沙灘上的腳印也許被海浪帶走，<br>
+          手印板上的沙子也許隨時間脫落，<br>
+          但在我心裡，<br>
+          那溫暖卻是永恆。
+        </div>
+      </div>
+    
+      <div class="page" id="page4">
+        <div class="pageContent">
+          我們比出愛心的瞬間，<br>
+          已成為腦海最珍貴的記憶，<br>
+          每當想起，總會不自覺微笑。
+        </div>
+      </div>
+    
+      <div class="page" id="page5">
+        <div class="pageContent">
+          無論面對多少挑戰，<br>
+          我都會緊握妳的手，<br>
+          陪妳一起走過風雨。
+        </div>
+      </div>
+    
+      <div class="page" id="page6">
+        <div class="pageContent">
+          妳是我人生中最美的奇蹟，<br>
+          我願用一輩子的時間，<br>
+          珍惜妳帶來的每一次幸福，<br>
+          寶寶 我愛妳!!永遠愛妳!
+        </div>
+      </div>
+    
+      <div class="page" id="page7">
+        <div class="pageContent">
+          ❄️《寒與豔陽》🌞<br>
+          清晨薄霧裡，梅花初綻，<br>
+          一縷清寒沁入心間。
+        </div>
+      </div>
+    
+      <div class="page" id="page8">
+        <div class="pageContent">
+          東方豔陽升起，<br>
+          溫柔的光線拂過山巒，<br>
+          融化枝頭上的冰霜。
+        </div>
+      </div>
+    
+      <div class="page" id="page9">
+        <div class="pageContent">
+          月下湖水輕輕蕩漾，<br>
+          星辰與微風呢喃細語，<br>
+          漣漪述說著細細的情話。
+        </div>
+      </div>
+    
+      <div class="page" id="page10">
+        <div class="pageContent">
+          寒與豔陽，命中註定相遇，<br>
+          北風與暖陽相擁，<br>
+          冰冷悄然消散。
+        </div>
+      </div>
+    
+      <div class="page" id="page11">
+        <div class="pageContent">
+          無論前路如何崎嶇，<br>
+          寒與豔陽永遠相伴，<br>
+          在天地間，愛情永不凋零。
+        </div>
+      </div>
 
-        const geometry = new THREE.CylinderGeometry(3.5, 3.5, 7, 32);
-        const material = new THREE.MeshStandardMaterial({ color: 0xffa500 });
-        const lantern = new THREE.Mesh(geometry, material);
-        lantern.position.set(0, -2, 0);
-        lantern.castShadow = true;
-        scene.add(lantern);
+    <div id="cardButtons">
+      <button class="cardNavBtn" id="cardPrevBtn" disabled>上一頁</button>
+      <button class="cardNavBtn" id="cardNextBtn">下一頁</button>
+    </div>
+  </div>
 
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 1024;
-        canvas.height = 1024;
-        const texture = new THREE.CanvasTexture(canvas);
-        const textMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
-        const textPlane = new THREE.PlaneGeometry(3, 6);
-        const textMesh = new THREE.Mesh(textPlane, textMaterial);
-        textMesh.position.set(0, 0, 3.55);
-        lantern.add(textMesh);
+  <!-- 音樂 -->
+  <audio id="bgm" src="music.mp3"></audio>
+  <!-- TODO: 改為你自己的音檔路徑 -->
 
-        let isReleased = false;
+  <script>
+    let scene, camera, renderer;
+    let cylinderMesh, insideMesh;
+    let textTexture, textCtx;
+    let isReleased=false;
 
-        async function saveWishToBackend(wishText) {
-            try {
-                const response = await fetch('https://your-backend-api.com/api/wishes', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ wish: wishText })
-                });
+    // 三頁, 第三頁( index=2 ) 不顯示 "下一頁"
+    let currentPage=0;
+    const totalPages=12;
 
-                if (response.ok) {
-                    console.log("願望已成功儲存！");
-                } else {
-                    console.error("儲存失敗！");
-                }
-            } catch (error) {
-                console.error("請求錯誤:", error);
-            }
+    // 假設後端API:
+    const BACKEND_API="http://localhost:3000/save-wish";
+
+    initScene();
+    animate();
+    setupUI();
+
+    function initScene(){
+      const container=document.getElementById('threeContainer');
+      scene=new THREE.Scene();
+      camera=new THREE.PerspectiveCamera(
+        75,
+        container.clientWidth/container.clientHeight,
+        0.1,1000
+      );
+      renderer=new THREE.WebGLRenderer({antialias:true});
+      renderer.shadowMap.enabled=true;
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(renderer.domElement);
+
+      // 主光
+      const mainLight=new THREE.PointLight(0xffffff,1,50);
+      mainLight.position.set(0,10,5);
+      mainLight.castShadow=true;
+      scene.add(mainLight);
+
+      // 底部橘光 => 讓天燈底部更亮
+      const bottomLight=new THREE.PointLight(0xffa500,2,15);
+      bottomLight.position.set(0,-15,0);
+      scene.add(bottomLight);
+
+      // 環境光
+      const ambient=new THREE.AmbientLight(0x404040);
+      scene.add(ambient);
+
+      camera.position.z=22;
+
+      createLantern();
+      window.addEventListener('resize', onWindowResize, false);
+    }
+
+    function createLantern(){
+      // 外部 Cylinder: top=3.7, bottom=3.0, height=7, 32段, 封頂
+      const outsideGeom=new THREE.CylinderGeometry(3.7,3.0,7,32,1,false);
+
+      // 天燈貼圖(橘色漸層 + "祈福")
+      const lanternCanvas=document.createElement('canvas');
+      lanternCanvas.width=512; 
+      lanternCanvas.height=512;
+      const ctx=lanternCanvas.getContext('2d');
+
+      // 漸層
+      const grad=ctx.createLinearGradient(0,0,0,512);
+      grad.addColorStop(0,"#ffb05e");
+      grad.addColorStop(1,"#ff7030");
+      ctx.fillStyle=grad;
+      ctx.fillRect(0,0,512,512);
+
+      // 中心亮區
+      ctx.fillStyle="rgba(255,255,255,0.15)";
+      ctx.beginPath();
+      ctx.ellipse(256,250,110,160,0,0,Math.PI*2);
+      ctx.fill();
+
+      // 上口 / 下口
+      ctx.strokeStyle="rgba(0,0,0,0.3)";
+      ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(180,90); ctx.lineTo(332,90); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(256,420,80,25,0,0,Math.PI*2); ctx.stroke();
+
+      // "祈福"
+      ctx.save();
+      ctx.fillStyle="#fff";
+      ctx.font="48px KaiTi";
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.translate(256,140);
+      ctx.fillText("祈福", 0,0);
+      ctx.restore();
+
+      const outsideTex=new THREE.CanvasTexture(lanternCanvas);
+      const outsideMat=new THREE.MeshStandardMaterial({ map:outsideTex });
+      cylinderMesh=new THREE.Mesh(outsideGeom, outsideMat);
+      cylinderMesh.castShadow=true;
+
+      // y= -11.5 => bottom= -18.5 => 從頁面底部開始
+      cylinderMesh.position.y=-11.5;
+      scene.add(cylinderMesh);
+
+      // 內部 Cylinder => emissive
+      const insideGeom=new THREE.CylinderGeometry(3.65,3.0,7,32,1,false);
+      const glowMat=new THREE.MeshStandardMaterial({
+        color:0x000000,
+        emissive:0xffa500,
+        emissiveIntensity:1.0,
+        side:THREE.BackSide
+      });
+      insideMesh=new THREE.Mesh(insideGeom, glowMat);
+      insideMesh.position.y=-11.5;
+      scene.add(insideMesh);
+
+      // 願望文字 => 貼在天燈 (子物件)
+      const textCanvas=document.createElement('canvas');
+      textCanvas.width=1024; textCanvas.height=1024;
+      textCtx=textCanvas.getContext('2d');
+      textTexture=new THREE.CanvasTexture(textCanvas);
+
+      const textMat=new THREE.MeshBasicMaterial({ map:textTexture, transparent:true });
+      const textPlane=new THREE.PlaneGeometry(3,6);
+      const textMesh=new THREE.Mesh(textPlane, textMat);
+      textMesh.position.set(0,0,3.8);
+      cylinderMesh.add(textMesh);
+    }
+
+    function animate(){
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize(){
+      const c=document.getElementById('threeContainer');
+      camera.aspect=c.clientWidth/c.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(c.clientWidth, c.clientHeight);
+    }
+
+    // ===== 後端儲存 =====
+    async function saveWishToBackend(wish){
+      try{
+        const res=await fetch(BACKEND_API,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({wish})
+        });
+        if(!res.ok){
+          console.error("儲存失敗:", await res.text());
+        } else {
+          console.log("願望已成功儲存！");
         }
+      }catch(e){
+        console.error("API錯誤:", e);
+      }
+    }
 
-        function updateText() {
-            const inputText = document.getElementById('textInput').value.trim();
-            if (!inputText) return;
+    // ===== 更新願望文字 =====
+    async function updateText(){
+      const val=document.getElementById('textInput').value.trim();
+      if(!val)return;
+      await saveWishToBackend(val);
 
-            saveWishToBackend(inputText);
+      textCtx.clearRect(0,0,1024,1024);
+      textCtx.fillStyle='black';
+      textCtx.font='110px KaiTi';
+      textCtx.textAlign='center';
+      textCtx.textBaseline='middle';
 
-            const lines = inputText.split('\n');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'black';
-            ctx.font = '110px KaiTi';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+      let lines=val.split('\n');
+      let maxCharsPerColumn=5;
+      let startX=512, startY=150;
+      let columnIndex=0;
 
-            let maxCharsPerColumn = 5;
-            let startX = canvas.width / 2;
-            let startY = 150;
-            let columnIndex = 0;
-
-            lines.forEach((line) => {
-                let words = line.split('');
-                for (let i = 0; i < words.length; i++) {
-                    if (i % maxCharsPerColumn === 0 && i !== 0) {
-                        columnIndex++;
-                    }
-                    ctx.fillText(words[i], startX - columnIndex * 120, startY + (i % maxCharsPerColumn) * 140);
-                }
-                columnIndex++;
-            });
-            texture.needsUpdate = true;
-            document.getElementById('releaseButton').disabled = false;
+      lines.forEach(line=>{
+        let words=line.split('');
+        for(let i=0; i<words.length; i++){
+          if(i%maxCharsPerColumn===0 && i!==0){
+            columnIndex++;
+          }
+          textCtx.fillText(
+            words[i],
+            startX - columnIndex*120,
+            startY + (i%maxCharsPerColumn)*140
+          );
         }
+        columnIndex++;
+      });
 
-        function releaseLantern() {
-            if (!isReleased) {
-                gsap.to(lantern.position, { y: "+=20", duration: 20, ease: "linear" });
-                document.getElementById('inputContainer').style.opacity = '0';
-                setTimeout(() => { document.getElementById('inputContainer').style.display = 'none'; }, 500);
-                isReleased = true;
-            }
-        }
+      textTexture.needsUpdate=true;
+      document.getElementById('releaseButton').disabled=false;
+    }
 
-        camera.position.z = 22;
-        function animate() {
-            requestAnimationFrame(animate);
-            renderer.render(scene, camera);
+    // ===== 釋放天燈 => 往上飄 => 顯示 "下一頁" => 繼續飛出頁面 =====
+    function releaseLantern(){
+      if(isReleased)return;
+      isReleased=true;
+
+      // 分兩段:
+      // 1) y=-11.5 -> y=8.5 (8s)
+      gsap.to([cylinderMesh.position, insideMesh.position], {
+        y:8.5,
+        duration:8,
+        ease:'linear',
+        onComplete: ()=>{
+          // 顯示"下一頁"
+          document.getElementById('nextPageButton').style.display='block';
+          // 2) 繼續往上 y=40 (12s)
+          gsap.to([cylinderMesh.position, insideMesh.position], {
+            y:40,
+            duration:12,
+            ease:'linear'
+          });
         }
-        animate();
-    </script>
+      });
+
+      // 淡出輸入UI
+      const c=document.getElementById('inputContainer');
+      c.style.opacity='0';
+      setTimeout(()=>{ c.style.display='none'; },500);
+    }
+
+    // ===== 飛到中段 -> "下一頁" => 顯示多頁卡片 =====
+    function gotoCardsPage(){
+      // 隱藏3D
+      document.getElementById('threeContainer').style.display='none';
+      document.getElementById('nextPageButton').style.display='none';
+
+      // 顯示多頁卡片
+      document.getElementById('cardsContainer').style.display='flex';
+      currentPage=0;
+      showCardPage(0);
+
+      // 撥放音樂
+      const bgm=document.getElementById('bgm');
+      bgm.play().catch(e=>console.log("音樂被阻擋:", e));
+    }
+
+    // 顯示特定頁
+    function showCardPage(idx){
+      for(let i=0;i<totalPages;i++){
+        document.getElementById('page'+i).style.display='none';
+      }
+      document.getElementById('page'+idx).style.display='flex';
+
+      // 上一頁/下一頁 按鈕 disable / hide
+      document.getElementById('cardPrevBtn').disabled = (idx<=0);
+
+      // 最後一頁 => 不顯示 "下一頁" => 直接 hide
+      const nextBtn=document.getElementById('cardNextBtn');
+      if(idx>=totalPages-1){
+        nextBtn.style.display='none';
+      } else {
+        nextBtn.style.display='inline-block';
+        nextBtn.disabled=false;
+      }
+    }
+
+    function prevCardPage(){
+      if(currentPage>0){
+        currentPage--;
+        showCardPage(currentPage);
+      }
+    }
+    function nextCardPage(){
+      if(currentPage<totalPages-1){
+        currentPage++;
+        showCardPage(currentPage);
+      }
+    }
+
+    function setupUI(){
+      document.getElementById('updateButton').addEventListener('click', updateText);
+      document.getElementById('releaseButton').addEventListener('click', releaseLantern);
+      document.getElementById('nextPageButton').addEventListener('click', gotoCardsPage);
+      
+      document.getElementById('cardPrevBtn').addEventListener('click', prevCardPage);
+      document.getElementById('cardNextBtn').addEventListener('click', nextCardPage);
+    }
+  </script>
 </body>
 </html>

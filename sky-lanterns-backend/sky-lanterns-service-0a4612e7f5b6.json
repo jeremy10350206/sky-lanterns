@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "sky-lanterns-service",
+  "private_key_id": "0a4612e7f5b63efec1b3a2b64c1d724846833716",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDCq7HUHpI8/5d9\nDeUStjzg4sZaMWXmIwya7zQCw7rc4QwOvlwGocs93TX1KdFk6nPFlugZoFuI0fzV\nULDhX7NVBwM9Tv9QDmp1slRWmhfQYaWzJ46/GzZZzFLD0FXBKTbOvSDtJUkdrilT\nzZGwayts7bxq8BDjyd8skWA4IOZx/DargbW64U/vRzZCvxPUubgNvXoTlXb9xYgi\nch0k4hZm8bn8/sfb0XC3d2IWQraQD1jAaySIygUtIne9GPZTtTo2ZoQpVVL18mGv\n9nFlC2MVDGMaG66C4Qn83JPULIDeN/2qTbgZwPQ/wtuZMtKtr9k+L9CktPXA/9/r\n7XZx+U07AgMBAAECggEAIQTWSNBWpZoEq+VrcV0PvmU4l5vBWOOhA7aG7+EbFNPn\nI6kOGuHeg0O+HzNUnPVXZbBO9enJHM/hPp1NIy0EUeu6lO+NRprrW8M/ouDIIUQu\nwtB22dtXwKtzblsr8HN5JF/X8eFdIXek8t3vVCkZWISKbOkDNF/NRtXxqBOMgtCk\ncOQQoCrAkhw8Swo0+Rl6D8Nv1muZiO400L5GRWCNuNo7ZQ6mveK4Yl/3rqjDcBi9\nLcdTlkPY/h8EVca/0XPNKnpwUBPbBKiATETfNST0IsGoMPexfjNf1JlnYUgFfTuQ\ncbpRYu5h3Prr8tokxYmirO08zGBRS1IPrlAAdqf5gQKBgQD9JVbb7TKmCBhAh4xu\n7X5RX0qYHPVfWeEt7AZyI3jTWSkNPyUWHe4dAPL3b6ZuXe4jpH85QwU5UvEW7ghL\n14XyP14IGKqITdINTXTHTE2/N8oO5bDwpGDSzQ5+PzbXPh0gm3Y2HxLKIusMjoot\n5DjQQ2CdXeFh4F1rQBugkexZUQKBgQDE3ZO9bOEJOhKIIDH/v7+cooflJREIJuRP\n6106WfcN9e0OZ5RVPc7qlFU0PWZYBUNyT38vxdPrxb387t4OPu8bDN/jReiIUaMe\nBD3I0W/FCLK9KRbDoQmE2BQwDOm3I1nVqJ4jQGuLOKUfJQyChp94ejZtLsHxwWvC\ngOY416haywKBgAe1t2uDUeOUo4hzmGdYfFxmFpODbkW1KxKG+btIMUnekU2B+tMt\nni7r9HpswBjka3hSbj2EOQiB6i3UmhQVQFMccvS0K51zIU6eaUwYmtWUEWdav4TU\nvM4uyJ43tqffkGuJ0JPdZmkZnycGwFadeM1+/9ZLIa4lczLtBOpjB1vBAoGBAJH0\nqY1+hNV/ba/pFsjDlD+ALPrR4W/Gze0G1kbl3opGM6xDVTFhsuAue4FQqGlH9bpx\ngB2eMUGTiQlW2+F5/XJzuCZbdUxkImilwlz6EkDl8wbVyN/frBwGy+jYGgtCtV74\nNc5y+4jrxVhy8nRvdRowmduXGAmyWr+JK6cnFNXDAoGAOogXciClGF8z9nNbcGmh\neC1CpolBts9SgxI4bRVHzFMLnCrI17V+1KNEAIQ9zixj2yDXKTKriBLYB5sq+a3v\nfiIaqB1r+809spMNTaj0m18T+ClAFf7P+y1i4XCml8U1RvTAucqiv37C0Ao2YW1b\n90XBTh1IQ5Q2E5sYN49nw/Q=\n-----END PRIVATE KEY-----\n",
+  "client_email": "sky-lanterns-service@sky-lanterns-service.iam.gserviceaccount.com",
+  "client_id": "100407455044477234110",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/sky-lanterns-service%40sky-lanterns-service.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
