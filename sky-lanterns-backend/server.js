@@ -65,7 +65,11 @@ app.post("/save-wish", async (req, res) => {
     });
   }
 });
-
+const path = require("path");
+const publicDir = path.join(__dirname, "./");
+app.get("/", async (req, res) => {
+  res.sendFile(path.join(publicDir, "3D-Sky-Lanterns.html"));
+});
 // 監聽埠號 (預設 .env 裡的 PORT=3000)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
